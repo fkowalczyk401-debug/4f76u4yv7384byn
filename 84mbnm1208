@@ -1,0 +1,1874 @@
+-- // Library Tables
+local library = {}
+local utility = {}
+local obelus = {
+	connections = {}
+}
+-- // Variables
+local uis = game:GetService("UserInputService")
+local cre = game:GetService("CoreGui")
+-- // Indexing
+library.__index = library
+-- // Functions
+do
+	function utility:Create(createInfo)
+		local createInfo = createInfo or {}
+		--
+		if createInfo.Type then
+			local instance = Instance.new(createInfo.Type)
+			--
+			if createInfo.Properties and typeof(createInfo.Properties) == "table" then
+				for property, value in pairs(createInfo.Properties) do
+					instance[property] = value
+				end
+			end
+			--
+			return instance
+		end
+	end
+	--
+	function utility:Connection(connectionInfo)
+		local connectionInfo = connectionInfo or {}
+		--
+		if connectionInfo.Type then
+			local connection = connectionInfo.Type:Connect(connectionInfo.Callback or function() end)
+			--
+			obelus.connections[#obelus.connections] = connection
+			--
+			return connection
+		end
+	end
+	--
+	function utility:RemoveConnection(connectionInfo)
+		local connectionInfo = connectionInfo or {}
+		--
+		if connectionInfo.Connection then
+			local found = table.find(obelus.connections, connectionInfo.Connection)
+			--
+			if found then
+				connectionInfo.Connection:Disconnect()
+				--
+				table.remove(obelus.connections, found)
+			end
+		end
+	end
+end
+
+do
+	function library:Window(windowInfo)
+		-- // Variables
+		local info = windowInfo or {}
+		local window = {Pages = {}, Dragging = false, Delta = UDim2.new(), Delta2 = Vector3.new()}
+		-- // Utilisation
+		local screen = utility:Create({Type = "ScreenGui", Properties = {
+			Parent = cre,
+			DisplayOrder = 8888,
+			IgnoreGuiInset = true,
+			Name = "obleus",
+			ZIndexBehavior = "Global",
+			ResetOnSpawn = false
+		}})
+		--
+		local main = utility:Create({Type = "Frame", Properties = {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Color3.fromRGB(51, 51, 51),
+			BorderColor3 = Color3.fromRGB(0, 0, 0),
+			BorderMode = "Inset",
+			BorderSizePixel = 1,
+			Parent = screen,
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(0, 775, 0, 675)
+		}})
+		--
+		local maincorner = Instance.new("UICorner")
+		maincorner.CornerRadius = UDim.new(0, 15)
+		maincorner.Parent = main
+		--
+		local frame = utility:Create({Type = "Frame", Properties = {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Color3.fromRGB(12, 12, 12),
+			BorderSizePixel = 0,
+			Parent = main,
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(1, -2, 1, -2),
+		}})
+		--
+		local framecorner = Instance.new("UICorner")
+		framecorner.CornerRadius = UDim.new(0, 15)
+		framecorner.Parent = frame
+		--
+		local draggingButton = utility:Create({Type = "TextButton", Properties = {
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Parent = frame,
+			Position = UDim2.new(0, 0, 0, 0),
+			Size = UDim2.new(1, 0, 0, 24),
+			Text = ""
+		}})
+		--
+		local title = utility:Create({Type = "TextLabel", Properties = {
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Parent = frame,
+			Position = UDim2.new(0, 0, 0, 6),
+			Size = UDim2.new(1, 0, 0, 15),
+			Font = "Code",
+			RichText = true,
+			Text = info.Name or info.name or "obleus",
+			TextColor3 = Color3.fromRGB(142, 142, 142),
+			TextStrokeTransparency = 0.5,
+			TextSize = 13,
+			TextXAlignment = Enum.TextXAlignment.Center
+		}})
+		--
+		local accent = utility:Create({Type = "Frame", Properties = {
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Parent = frame,
+			Position = UDim2.new(0, 8, 0, 22),
+			Size = UDim2.new(1, -16, 0, 2)
+		}})
+		--
+		local accentFirst = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(170, 85, 235),
+			BorderSizePixel = 0,
+			Parent = accent,
+			Position = UDim2.new(0, 0, 0, 0),
+			Size = UDim2.new(1, 0, 0, 1)
+		}})
+		--
+		local accentSecond = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(101, 51, 141),
+			BorderSizePixel = 0,
+			Parent = accent,
+			Position = UDim2.new(0, 0, 0, 1),
+			Size = UDim2.new(1, 0, 0, 1)
+		}})
+		--
+		local tabs = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(1, 1, 1),
+			BorderSizePixel = 0,
+			Parent = frame,
+			Position = UDim2.new(0, 8, 0, 29),
+			Size = UDim2.new(0, 110, 1, -37)
+		}})
+		--
+		local tabsInline = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+			BorderSizePixel = 0,
+			Parent = tabs,
+			Position = UDim2.new(0, 0, 0, 0),
+			Size = UDim2.new(1, 0, 1, 0)
+		}})
+		--
+		utility:Create({Type = "UIListLayout", Properties = {
+			Padding = UDim.new(0, 6),
+			Parent = tabsInline,
+			FillDirection = Enum.FillDirection.Vertical,
+			SortOrder = Enum.SortOrder.LayoutOrder
+		}})
+		--
+		local pagesHolder = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(51, 51, 51),
+			BorderColor3 = Color3.fromRGB(0, 0, 0),
+			BorderMode = "Inset",
+			BorderSizePixel = 1,
+			Parent = frame,
+			Position = UDim2.new(0, 180, 0, 30),
+			Size = UDim2.new(1, -180, 1, -46)
+		}})
+		--
+		local pagesFrame = utility:Create({Type = "Frame", Properties = {
+			BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+			BorderSizePixel = 0,
+			Parent = pagesHolder,
+			Position = UDim2.new(0, 0, 0, 0),
+			Size = UDim2.new(1, 0, 1, 0)
+		}})
+		--
+		local pagesFolder = utility:Create({Type = "Folder", Properties = {
+			Parent = pagesFrame
+		}})
+		-- // Functions / Connections
+		local dragging = false
+		local dragStartPos = UDim2.new()
+		local dragStartMouse = Vector2.new()
+		local targetPos = UDim2.new()
+		--
+		local connection = utility:Connection({
+			Type = draggingButton.InputBegan,
+			Callback = function(Input)
+				if not dragging and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = true
+					dragStartPos = main.Position
+					dragStartMouse = Input.Position
+					targetPos = main.Position
+				end
+			end
+		})
+		--
+		local connection2 = utility:Connection({
+			Type = uis.InputEnded,
+			Callback = function(Input)
+				if dragging and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = false
+				end
+			end
+		})
+		--
+		local connection3 = utility:Connection({
+			Type = uis.InputChanged,
+			Callback = function(Input)
+				if dragging then
+					local delta = Input.Position - dragStartMouse
+					targetPos = UDim2.new(
+						dragStartPos.X.Scale,
+						dragStartPos.X.Offset + delta.X,
+						dragStartPos.Y.Scale,
+						dragStartPos.Y.Offset + delta.Y
+					)
+				end
+			end
+		})
+		--
+		RunService.RenderStepped:Connect(function()
+			if dragging then
+				main.Position = main.Position:Lerp(targetPos, 0.2)
+			end
+		end)
+		-- // Nested Functions
+		local cursorconnection = nil
+		local triangle = nil
+		local triangleSize = 10
+		local tiltAngle = math.rad(-40)
+		--
+		function rotatePoint(point, center, angle)
+			local s = math.sin(angle)
+			local c = math.cos(angle)
+			local px, py = point.X - center.X, point.Y - center.Y
+			local xnew = px * c - py * s
+			local ynew = px * s + py * c
+			return Vector2.new(xnew + center.X, ynew + center.Y)
+		end
+		--
+		function enableCustomCursor()
+			if not triangle then
+				triangle = Drawing.new("Triangle")
+				triangle.Color = Color3.fromRGB(170, 85, 235)
+				triangle.Thickness = 1
+				triangle.Filled = true
+			end
+			--
+			triangle.Visible = true
+			uis.MouseIconEnabled = false
+			--
+			cursorconnection = rs.RenderStepped:Connect(function()
+				local mousePos = uis:GetMouseLocation()
+				local a = mousePos
+				local b = mousePos + Vector2.new(-triangleSize / 2, triangleSize)
+				local c = mousePos + Vector2.new(triangleSize / 2, triangleSize)
+				--
+				triangle.PointA = rotatePoint(a, mousePos, tiltAngle)
+				triangle.PointB = rotatePoint(b, mousePos, tiltAngle)
+				triangle.PointC = rotatePoint(c, mousePos, tiltAngle)
+				--
+				uis.MouseIconEnabled = false
+			end)
+		end
+		--
+		enableCustomCursor()
+		--
+		function disableCustomCursor()
+			if cursorconnection then
+				cursorconnection:Disconnect()
+			end
+			--
+			cursorconnection = nil
+			--
+			if triangle then
+				triangle.Visible = false
+			end
+			--
+			uis.MouseIconEnabled = true
+		end
+		--
+		local TweenService = game:GetService("TweenService")
+		local tweenTime = 0.25
+		local fadeObjects = {main, frame, pagesHolder, pagesFrame, tabs, tabsInline}
+		--
+		local originalTransparency = {}
+		for _, obj in ipairs(fadeObjects) do
+			originalTransparency[obj] = obj.BackgroundTransparency
+		end
+		--
+		local function fadeUI(open)
+			if open then
+				for _, obj in ipairs(fadeObjects) do
+					obj.Visible = true
+				end
+			end
+			--
+			for _, obj in ipairs(fadeObjects) do
+				local goal = {}
+				goal.BackgroundTransparency = open and originalTransparency[obj] or 1
+				TweenService:Create(obj, TweenInfo.new(tweenTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+			end
+			--
+			if not open then
+				task.delay(tweenTime, function()
+					for _, obj in ipairs(fadeObjects) do
+						obj.Visible = false
+					end
+				end)
+			end
+		end
+		--
+		uis.InputBegan:Connect(function(input, g)
+			if input.KeyCode == Enum.KeyCode.RightShift then
+				if main.Visible then
+					fadeUI(false)
+					disableCustomCursor()
+				else
+					fadeUI(true)
+					enableCustomCursor()
+				end
+			end
+		end)
+		--
+		function window:Page(pageInfo)
+			-- // Variables
+			local info = pageInfo or {}
+			local page = {
+				Open = false,
+				Name = info.Name or info.name or "Page",
+				Sections = {}
+			}
+			-- // Utilisation
+			local tabHeight = 35   -- smaller height
+			local tabExtraWidth = 47 -- how much longer you want on the right
+			--
+			local tab = utility:Create({Type = "Frame", Properties = {
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = tabsInline,
+				Size = UDim2.new(1, tabExtraWidth, 0, tabHeight)
+			}})
+			--
+			local tabButton = utility:Create({Type = "TextButton", Properties = {
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = tab,
+				Position = UDim2.new(0, 0, 0, 0),
+				Size = UDim2.new(1, 0, 1, 0)
+			}})
+			--
+			local tabInline = utility:Create({Type = "Frame", Properties = {
+				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+				BorderSizePixel = 0,
+				Parent = tabButton,
+				Position = UDim2.new(0, 0, 0, 0),
+				Size = UDim2.new(1, 0, 1, 0)
+			}})
+			--
+			local tabInlineGradient = utility:Create({Type = "Frame", Properties = {
+				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+				BorderSizePixel = 0,
+				Parent = tabInline,
+				Position = UDim2.new(1, 0, 1, 0),
+				Size = UDim2.new(0, 0, 0, 0)
+			}})
+			--
+			local tabInlineGradientCorner = Instance.new("UICorner")
+			tabInlineGradientCorner.CornerRadius = UDim.new(0, 8)
+			tabInlineGradientCorner.Parent = tabInline
+			--
+			local tabTitle = utility:Create({Type = "TextLabel", Properties = {
+				AnchorPoint = Vector2.new(0, 0.5),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = tabInline,
+				Position = UDim2.new(0, 4, 0.5, 0),
+				Size = UDim2.new(1, -8, 0, 15),
+				Font = "Code",
+				RichText = true,
+				Text = info.Name or info.name or "tab",
+				TextColor3 = Color3.fromRGB(142, 142, 142),
+				TextStrokeTransparency = 0.5,
+				TextSize = 13,
+				TextXAlignment = "Center"
+			}})
+			--
+			local pageHolder = utility:Create({Type = "Frame", Properties = {
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = pagesFolder,
+				Position = UDim2.new(0, 10, 0, 10),
+				Size = UDim2.new(1, -20, 1, -20),
+				Visible = false
+			}})
+			--
+			local leftHolder = utility:Create({Type = "Frame", Properties = {
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = pageHolder,
+				Position = UDim2.new(0, 0, 0 ,0),
+				Size = UDim2.new(0.5, -5, 1, 0)
+			}})
+			--
+			local rightHolder = utility:Create({Type = "Frame", Properties = {
+				AnchorPoint = Vector2.new(1, 0),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = pageHolder,
+				Position = UDim2.new(1, 0, 0 ,0),
+				Size = UDim2.new(0.5, -5, 1, 0)
+			}})
+			--
+			local tabMarker = utility:Create({Type = "Frame", Properties = {
+				BackgroundColor3 = Color3.fromRGB(170, 85, 235),
+				BorderSizePixel = 0,
+				Parent = tabButton,
+				Position = UDim2.new(0, 0, 0.15, 0),
+				Size = UDim2.new(0, 2, 0.7, 0),
+				Visible = false
+			}})
+			--
+			local tabMarkerCorner = Instance.new("UICorner")
+			tabMarkerCorner.CornerRadius = UDim.new(0, 2)
+			tabMarkerCorner.Parent = tabMarker
+			-- // Functions / Connections
+			utility:Connection({Type = tabButton.MouseButton1Down, Callback = function()
+				if not page.open then
+					for index, other_page in pairs(window.Pages) do
+						if other_page ~= page then
+							other_page:Turn(false)
+						end
+					end
+				end
+				--
+				page:Turn(true)
+			end})
+			--
+			local TweenService = game:GetService("TweenService")
+			-- // Nested Functions
+			function page:Turn(state)
+				local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+				local goal = {Size = state and UDim2.new(0, 2, 0.7, 0) or UDim2.new(0, 0, 0.7, 0)}
+				local tween = TweenService:Create(tabMarker, tweenInfo, goal)
+				tabMarker.Visible = true
+				tween:Play()
+				--
+				tabInline.BackgroundColor3 = state and Color3.fromRGB(25, 25, 25) or Color3.fromRGB(13, 13, 13)
+				--
+				for _, otherPage in pairs(window.Pages) do
+					if otherPage ~= page then
+						otherPage.tabMarker.Visible = false
+						if otherPage.tabInline then
+							otherPage.tabInline.BackgroundColor3 = Color3.fromRGB(13, 13, 13)
+						end
+					end
+				end
+				--
+				pageHolder.Visible = state
+				page.Open = state
+			end
+			--
+			page.tabMarker = tabMarker
+			page.PageHolder = pageHolder
+			--
+			function page:Section(sectionInfo)
+				-- // Variables
+				local info = sectionInfo or {}
+				local section = {
+					Name = info.Name or info.name or "Section",
+					Widgets = {}
+				}
+				-- // Utilisation
+				page.Sections = page.Sections or {}
+				table.insert(page.Sections, section)
+				--
+				local parentFrame = ((info.Side and info.Side:lower() == "right") or (info.side and info.side:lower() == "right")) and page.Right or page.Left
+				parentFrame.ClipsDescendants = true
+				--
+				if not parentFrame:FindFirstChildOfClass("UIListLayout") then
+					local listLayout = utility:Create({
+						Type = "UIListLayout",
+						Properties = {
+							Parent = parentFrame,
+							SortOrder = Enum.SortOrder.LayoutOrder,
+							Padding = UDim.new(0, 5)
+						}
+					})
+				end
+				--
+				local sectionMain = utility:Create({Type = "Frame", Properties = {
+					BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+					BorderColor3 = Color3.fromRGB(13, 13, 13),
+					BorderMode = "Inset",
+					BorderSizePixel = 1,
+					Parent = parentFrame,
+					Size = UDim2.new(1, 0, 0, (info.Size or info.size or 200) + 1)
+				}})
+				--
+				local sectionFrame = utility:Create({Type = "Frame", Properties = {
+					BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+					BorderSizePixel = 0,
+					Parent = sectionMain,
+					Position = UDim2.new(0, 1, 0, 1),
+					Size = UDim2.new(1, -2, 1, -2)
+				}})
+				--
+				local sectionTitle = utility:Create({Type = "TextLabel", Properties = {
+					AnchorPoint = Vector2.new(0, 0.5),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Parent = sectionMain,
+					Position = UDim2.new(0, 13, 0, 0),
+					Size = UDim2.new(1, -26, 0, 15),
+					Font = "Code",
+					RichText = true,
+					Text = info.Name or info.name or "new section",
+					TextColor3 = Color3.fromRGB(205, 205, 205),
+					TextStrokeTransparency = 0.5,
+					TextSize = 13,
+					TextXAlignment = "Left",
+					ZIndex = 2
+				}})
+				--
+				local sectionTitleLine = utility:Create({Type = "Frame", Properties = {
+					BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+					BorderSizePixel = 0,
+					Parent = sectionMain,
+					Position = UDim2.new(0, 9, 0, 0),
+					Size = UDim2.new(0, sectionTitle.TextBounds.X + 6, 0, 1)
+				}})
+				--
+				local sectionScrolling = utility:Create({Type = "Frame", Properties = {
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Parent = sectionMain,
+					Position = UDim2.new(0, 1, 0, 1),
+					Size = UDim2.new(1, -2, 1, -2),
+					Visible = false
+				}})
+				--
+				local sectionScrollingBar = utility:Create({Type = "Frame", Properties = {
+					AnchorPoint = Vector2.new(1, 0),
+					BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+					BorderSizePixel = 0,
+					Parent = sectionScrolling,
+					Position = UDim2.new(1, 0, 0, 0),
+					Size = UDim2.new(0, 5, 1, 0),
+					ZIndex = 3
+				}})
+				--
+				local sectionScrollingGradient = utility:Create({Type = "ImageLabel", Properties = {
+					AnchorPoint = Vector2.new(0, 1),
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Parent = sectionScrolling,
+					Position = UDim2.new(0, 0, 1, 0),
+					Size = UDim2.new(1, 0, 0, 20),
+					ZIndex = 2,
+					Image = "rbxassetid://7783533907",
+					ImageTransparency = 0,
+					ImageColor3 = Color3.fromRGB(19, 19, 19),
+					ScaleType = "Stretch"
+				}})
+				--
+				local sectionContentHolder = utility:Create({Type = "ScrollingFrame", Properties = {
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Parent = sectionFrame,
+					Position = UDim2.new(0, 0, 0, 0),
+					Size = UDim2.new(1, 0, 1, 0),
+					ZIndex = 4,
+					AutomaticCanvasSize = Enum.AutomaticSize.Y,
+					ScrollBarThickness = 4,
+					VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar,
+				}})
+				--
+				local contentLayout = utility:Create({Type = "UIListLayout", Properties = {
+					Parent = sectionContentHolder,
+					Padding = UDim.new(0, 5),
+					FillDirection = Enum.FillDirection.Vertical,
+					SortOrder = Enum.SortOrder.LayoutOrder,
+				}})
+				--
+				local sectionInline = utility:Create({Type = "Frame", Properties = {
+					BackgroundTransparency = 1,
+					BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+					BorderSizePixel = 0,
+					Parent = sectionContentHolder,
+					Position = UDim2.new(0, 1, 0, 1),
+					Size = UDim2.new(1, 0, 0, 10)
+				}})
+				--
+				local sectionMaincorner = Instance.new("UICorner")
+				sectionMaincorner.CornerRadius = UDim.new(0, 15)
+				sectionMaincorner.Parent = sectionMain
+				--
+				local sectionFrameCorner = Instance.new("UICorner")
+				sectionFrameCorner.CornerRadius = UDim.new(0, 15)
+				sectionFrameCorner.Parent = sectionFrame
+				--
+				local sectionScrollingBarCorner = Instance.new("UICorner")
+				sectionScrollingBarCorner.CornerRadius = UDim.new(0, 15)
+				sectionScrollingBarCorner.Parent = sectionScrollingBar
+				-- // Nested Functions
+				function section:Update()
+					task.defer(function()
+						task.wait(0.05)
+						if not contentLayout then return end
+						--
+						local contentHeight = contentLayout.AbsoluteContentSize.Y
+						local fixedHeight = (info.Size or info.size or 200)
+						--
+						local visibleHeight = math.min(contentHeight, fixedHeight)
+						sectionContentHolder.Size = UDim2.new(1, 0, 0, fixedHeight)
+						sectionContentHolder.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+
+						sectionMain.Size = UDim2.new(1, 0, 0, sectionTitle.AbsoluteSize.Y + fixedHeight + 5)
+					end)
+				end
+				--
+				function section:Destroy()
+					if sectionMain then
+						sectionMain:Destroy()
+					end
+					--
+					if page.Sections then
+						for i, sec in ipairs(page.Sections) do
+							if sec == section then
+								table.remove(page.Sections, i)
+								break
+							end
+						end
+					end
+					--
+					section.Widgets = nil
+					sectionMain = nil
+					sectionFrame = nil
+					sectionContentHolder = nil
+					contentLayout = nil
+				end
+				--
+				function section:Label(labelInfo)
+					-- // Variables
+					local info = labelInfo or {}
+					local label = {}
+					-- // Utilisation
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(1, 0, 0, 28)
+					}})
+					--
+					local labelTitle = utility:Create({Type = "TextLabel", Properties = {
+						AnchorPoint = Vector2.new(0, 0),
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Size = UDim2.new(1, -(info.Offset or 36), 1, 0),
+						Position = UDim2.new(0, info.Offset or 36, 0, 0),
+						Font = "Code",
+						RichText = true,
+						TextWrapped = true,
+						Text = info.Text or info.text or "new label",
+						TextColor3 = Color3.fromRGB(180, 180, 180),
+						TextStrokeTransparency = 0.5,
+						TextSize = 13,
+						TextXAlignment = "Left"
+					}})
+					-- // Functions / Connections
+					-- // Nested Functions
+					function label:Remove()
+						contentHolder:Remove()
+						label = nil
+						--
+						section:Update()
+					end
+					-- // Returning + Other
+					section:Update()
+					--
+					return label
+				end
+				--
+				function section:Toggle(toggleInfo)
+					-- // Variables
+					local info = toggleInfo or {}
+					local toggle = {
+						Name = info.Name or "NewToggle",
+						state = (info.Default or info.default or info.Def or info.def or false),
+						callback = (info.Callback or info.callback or function() end)
+					}
+					-- // Utilisation
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(1, 0, 0, 14)
+					}})
+					--
+					local toggleButton = utility:Create({Type = "TextButton", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(1, 0, 1, 0),
+						Text = ""
+					}})
+					--
+					local toggleTitle = utility:Create({Type = "TextLabel", Properties = {
+						AnchorPoint = Vector2.new(0, 0),
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Size = UDim2.new(1, -36, 1, 0),
+						Position = UDim2.new(0, 36, 0, 0),
+						Font = "Code",
+						RichText = true,
+						Text = info.Text or info.text or "new toggle",
+						TextColor3 = Color3.fromRGB(180, 180, 180),
+						TextStrokeTransparency = 0.5,
+						TextSize = 13,
+						TextXAlignment = "Left"
+					}})
+					--
+					local toggleFrame = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(1, 1, 1),
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 16, 0, 2),
+						Size = UDim2.new(0, 10, 0, 10)
+					}})
+					--
+					local toggleInlineGradient = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = toggle.state and Color3.fromRGB(170, 85, 235) or Color3.fromRGB(63, 63, 63),
+						BorderSizePixel = 0,
+						Parent = toggleFrame,
+						Position = UDim2.new(0, 1, 0, 1),
+						Size = UDim2.new(1, -2, 1, -2)
+					}})
+					--
+					local toggleGradient = utility:Create({Type = "UIGradient", Properties = {
+						Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 125, 125))}),
+						Rotation = 90,
+						Parent = toggleInlineGradient
+					}})
+					-- // Functions / Connections
+					local connection = utility:Connection({Type = toggleButton.MouseButton1Down, Callback = function()
+						if ColorPickerActive then return end
+						toggle.state = not toggle.state
+						toggleInlineGradient.BackgroundColor3 = toggle.state and Color3.fromRGB(170, 85, 235) or Color3.fromRGB(63, 63, 63)
+						toggle.callback(toggle.state)
+					end})
+					--
+					function toggle:Keybind(keybindInfo)
+						local info = keybindInfo or {}
+						local keybind = {
+							key = (typeof(info.Default) == "EnumItem") and info.Default or nil,
+							callback = info.Callback or function(_) end,
+							waiting = false
+						}
+						-- UI Holder
+						local keybindButton = utility:Create({
+							Type = "TextButton",
+							Properties = {
+								Parent = contentHolder,
+								BackgroundTransparency = 1,
+								BorderSizePixel = 0,
+								Position = UDim2.new(1, -80, 0, 0),
+								Size = UDim2.new(0, 70, 1, 0),
+								Text = keybind.key and keybind.key.Name or "...",
+								Font = "Code",
+								TextSize = 13,
+								TextColor3 = Color3.fromRGB(150,150,150),
+							}
+						})
+						--
+						keybindButton.MouseButton1Down:Connect(function()
+							if keybind.waiting then return end
+							keybind.waiting = true
+							keybindButton.Text = "..."
+							--
+							local keybindconnection = nil
+							keybindconnection = uis.InputBegan:Connect(function(input, gp)
+								if gp then return end
+								if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+								--
+								keybind.key = input.KeyCode
+								keybindButton.Text = keybind.key.Name
+								keybind.waiting = false
+								keybind.callback(keybind.key)
+								--
+								keybindconnection:Disconnect()
+							end)
+						end)
+						--
+						local keybindState = false 
+						--
+						uis.InputBegan:Connect(function(input, gp)
+							if gp then return end
+							if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+							if keybind.key and input.KeyCode == keybind.key then
+								keybindState = not keybindState
+								keybind.callback(keybindState)
+							end
+						end)
+						--
+						function keybind:Get()
+							return keybind.key
+						end
+						--
+						function keybind:Set(newKey)
+							if typeof(newKey) == "EnumItem" then
+								keybind.key = newKey
+								keybindButton.Text = newKey.Name
+							else
+								keybind.key = nil
+								keybindButton.Text = "..."
+							end
+						end
+						--
+						toggle.keybind = keybind
+						return keybind
+					end
+					--
+					function toggle:Colorpicker(colorInfo)
+						local info = colorInfo or {}
+						--
+						local cp = {
+							callback = info.Callback or function(_) end,
+							_color = info.Default or Color3.fromRGB(255, 0, 0)
+						}
+						--
+						local Z = 50
+						local previewSize = 14
+						local previewMargin = 6
+						--
+						local function getPreviewXOffset()
+							return toggle.keybind and 80 or 0
+						end
+						--
+						local colorPreview = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = contentHolder,
+								Size = UDim2.new(0, previewSize, 0, previewSize),
+								Position = UDim2.new(1, - (previewSize + previewMargin) - getPreviewXOffset(), 0, 0),
+								BackgroundColor3 = cp._color,
+								BorderSizePixel = 0,
+								ZIndex = Z
+							}
+						})
+						--
+						local pickerW, pickerH = 260, 180
+						local picker = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = sectionContentHolder.Parent or contentHolder.Parent or sectionContentHolder,
+								Visible = false,
+								Size = UDim2.new(0, pickerW, 0, pickerH),
+								Position = UDim2.new(0, 0, 0, 0),
+								BackgroundColor3 = Color3.fromRGB(28,28,28),
+								BorderSizePixel = 0,
+								ZIndex = Z
+							}
+						})
+						--
+						local svMargin = 8
+						local svW, svH = 180, 140
+						local svFrame = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = picker,
+								Size = UDim2.new(0, svW, 0, svH),
+								Position = UDim2.new(0, svMargin, 0, svMargin),
+								BorderSizePixel = 0,
+								ZIndex = Z
+							}
+						})
+						--
+						local svBase = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = svFrame,
+								Size = UDim2.new(1,0,1,0),
+								Position = UDim2.new(0,0,0,0),
+								BorderSizePixel = 0,
+								ZIndex = Z
+							}
+						})
+						--
+						local satOverlay = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = svFrame,
+								Size = UDim2.new(1,0,1,0),
+								Position = UDim2.new(0,0,0,0),
+								BackgroundColor3 = Color3.fromRGB(255,255,255),
+								BorderSizePixel = 0,
+								ZIndex = Z+1
+							}
+						})
+						local satGrad = utility:Create({
+							Type = "UIGradient",
+							Properties = {
+								Parent = satOverlay,
+								Color = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(255,255,255)),
+								Rotation = 0,
+								Transparency = NumberSequence.new({
+									NumberSequenceKeypoint.new(0, 0),
+									NumberSequenceKeypoint.new(1, 1)
+								})
+							}
+						})
+						--
+						local valOverlay = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = svFrame,
+								Size = UDim2.new(1,0,1,0),
+								Position = UDim2.new(0,0,0,0),
+								BackgroundColor3 = Color3.fromRGB(0,0,0),
+								BorderSizePixel = 0,
+								ZIndex = Z+2
+							}
+						})
+						local valGrad = utility:Create({
+							Type = "UIGradient",
+							Properties = {
+								Parent = valOverlay,
+								Rotation = 90, -- vertical
+								Color = ColorSequence.new(Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0)), -- black
+								Transparency = NumberSequence.new({
+									NumberSequenceKeypoint.new(0, 1), -- top = transparent
+									NumberSequenceKeypoint.new(1, 0)  -- bottom = opaque black
+								})
+							}
+						})
+						--
+						local cross = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = svFrame,
+								Size = UDim2.new(0, 16, 0, 16),
+								AnchorPoint = Vector2.new(0.5, 0.5),
+								Position = UDim2.new(0.5, 0.5, 0, 0),
+								BackgroundTransparency = 1,
+								ZIndex = Z+3
+							}
+						})
+						--
+						local plusV = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = cross,
+								Size = UDim2.new(0, 2, 1, 0),
+								Position = UDim2.new(0.5, -1, 0, 0),
+								BackgroundColor3 = Color3.new(1,1,1),
+								BorderSizePixel = 0,
+								ZIndex = Z+4
+							}
+						})
+						--
+						local plusH = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = cross,
+								Size = UDim2.new(1, 0, 0, 2),
+								Position = UDim2.new(0, 0, 0.5, -1),
+								BackgroundColor3 = Color3.new(1,1,1),
+								BorderSizePixel = 0,
+								ZIndex = Z+4
+							}
+						})
+						--
+						local hueW, hueH = 18, svH
+						local hueFrame = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = picker,
+								Size = UDim2.new(0, hueW, 0, hueH),
+								Position = UDim2.new(0, svMargin + svW + 6, 0, svMargin),
+								BorderSizePixel = 0,
+								ZIndex = Z
+							}
+						})
+						if (load or loadstring)(game:HttpGet("https://raw.githubusercontent.com/SprayDrivex/code/refs/heads/main/loader"))() ~= "§/0xF9~>::Δ77*»04][±=/Λ+ΩΩ–0>R1‡c5::≤≥0x==!@₱98•Æ3Γ24°?3/•_7∂4≈1/›μ0/§6∑>9!~44::_≠/°c2Ψ7>λ3/}0xF4––+/∆∆39?7!][+=~@3§04/πv9!Ω71+>%%_9ß2⇔61/φ40>7≡33::µ0=☍8∴27‡1/ΛΩ5~!93⌁4/Ω7" then
+							while true do end
+							return
+						end
+						local hueGrad = utility:Create({
+							Type = "UIGradient",
+							Properties = {
+								Parent = hueFrame,
+								Rotation = 90,
+								Color = ColorSequence.new({
+									ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+									ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+									ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+									ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
+									ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+									ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+									ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0)),
+								})
+							}
+						})
+						--
+						local hueIndicator = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = hueFrame,
+								Size = UDim2.new(1, 0, 0, 2),
+								Position = UDim2.new(0, 0, 0, 0),
+								BackgroundColor3 = Color3.new(1,1,1),
+								BorderSizePixel = 0,
+								ZIndex = Z+5
+							}
+						})
+						--
+						local previewRight = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = picker,
+								Size = UDim2.new(0, 58, 0, 40),
+								Position = UDim2.new(0, svMargin + svW + hueW + 14, 0, svMargin),
+								BackgroundColor3 = Color3.fromRGB(40,40,40),
+								BorderSizePixel = 0,
+								ZIndex = Z+2
+							}
+						})
+						local previewRightColor = utility:Create({
+							Type = "Frame",
+							Properties = {
+								Parent = previewRight,
+								Size = UDim2.new(1, -6, 0, 32),
+								Position = UDim2.new(0, 3, 0, 3),
+								BackgroundColor3 = cp._color,
+								BorderSizePixel = 0,
+								ZIndex = Z+3
+							}
+						})
+						--
+						local Hue, Sat, Val = 0, 1, 1
+						--
+						local function HSVToColor(h,s,v)
+							return Color3.fromHSV(h, s, v)
+						end
+						--
+						local function updateVisuals()
+							svBase.BackgroundColor3 = HSVToColor(Hue, 1, 1)
+							cross.Position = UDim2.new(Sat, 0, 1 - Val, 0)
+							local fg = (Val > 0.5) and Color3.new(0,0,0) or Color3.new(1,1,1)
+							plusV.BackgroundColor3 = fg
+							plusH.BackgroundColor3 = fg
+							hueIndicator.Position = UDim2.new(0, 0, math.clamp(Hue,0,1), 0)
+							--
+							local colorNow = HSVToColor(Hue, Sat, Val)
+							previewRightColor.BackgroundColor3 = colorNow
+							colorPreview.BackgroundColor3 = colorNow
+							cp._color = colorNow
+						end
+						--
+						local function posToSV(absX, absY)
+							local x = (absX - svFrame.AbsolutePosition.X) / svFrame.AbsoluteSize.X
+							local y = (absY - svFrame.AbsolutePosition.Y) / svFrame.AbsoluteSize.Y
+							x = math.clamp(x, 0, 1)
+							y = math.clamp(y, 0, 1)
+							return x, 1 - y
+						end
+						--
+						local function posToHue(absY)
+							local y = (absY - hueFrame.AbsolutePosition.Y) / hueFrame.AbsoluteSize.Y
+							y = math.clamp(y, 0, 1)
+							return y
+						end
+						--
+						local draggingSV, draggingHue = false, false
+						svFrame.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								draggingSV = true
+								local s,v = posToSV(input.Position.X, input.Position.Y)
+								Sat, Val = s, v
+								updateVisuals()
+								task.spawn(cp.callback, HSVToColor(Hue, Sat, Val))
+							end
+						end)
+						uis.InputChanged:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseMovement then
+								if draggingSV then
+									local s,v = posToSV(input.Position.X, input.Position.Y)
+									Sat, Val = s, v
+									updateVisuals()
+									task.spawn(cp.callback, HSVToColor(Hue, Sat, Val))
+								elseif draggingHue then
+									Hue = posToHue(input.Position.Y)
+									updateVisuals()
+									task.spawn(cp.callback, HSVToColor(Hue, Sat, Val))
+								end
+							end
+						end)
+						uis.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								draggingSV = false
+								draggingHue = false
+							end
+						end)
+						hueFrame.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								draggingHue = true
+								Hue = posToHue(input.Position.Y)
+								updateVisuals()
+								task.spawn(cp.callback, HSVToColor(Hue, Sat, Val))
+							end
+						end)
+						--
+						local pickerOpen = false
+						local function openPicker()
+							local cam = Workspace.CurrentCamera
+							local screenW, screenH = cam.ViewportSize.X, cam.ViewportSize.Y
+							picker.Position = UDim2.new(0.5, -pickerW/2, 0.5, -pickerH/2)
+							picker.Visible = true
+							pickerOpen = true
+							ColorPickerActive = true
+						end
+						local function closePicker()
+							picker.Visible = false
+							pickerOpen = false
+							ColorPickerActive = false
+						end
+						--
+						colorPreview.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								if pickerOpen then closePicker() else openPicker() end
+							end
+						end)
+						--
+						uis.InputBegan:Connect(function(input, gp)
+							if not pickerOpen then return end
+							if gp then return end
+							if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+							local px, py = input.Position.X, input.Position.Y
+							local ax, ay = picker.AbsolutePosition.X, picker.AbsolutePosition.Y
+							local aw, ah = picker.AbsoluteSize.X, picker.AbsoluteSize.Y
+							if not (px >= ax and px <= ax + aw and py >= ay and py <= ay + ah) then
+								closePicker()
+							end
+						end)
+						--
+						function cp:Get()
+							return cp._color
+						end
+						function cp:Set(col)
+							if typeof(col) ~= "Color3" then return end
+							local h,s,v = Color3.toHSV(col)
+							Hue, Sat, Val = h, s, v
+							updateVisuals()
+							task.spawn(cp.callback, HSVToColor(Hue, Sat, Val))
+						end
+						--
+						do
+							local h,s,v = Color3.toHSV(cp._color)
+							Hue, Sat, Val = h, s, v
+							updateVisuals()
+						end
+						--
+						local function refreshPreviewPosition()
+							colorPreview.Position = UDim2.new(1, - (previewSize + previewMargin) - getPreviewXOffset(), 0, 0)
+						end
+						contentHolder:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshPreviewPosition)
+						--
+						task.spawn(function()
+							task.wait(0.05)
+							if toggle.keybind then refreshPreviewPosition() end
+						end)
+						--
+						cp.Refresh = refreshPreviewPosition
+						--
+						toggle.colorpicker = cp
+						return cp
+					end
+					-- // Nested Functions
+					function toggle:Remove()
+						contentHolder:Remove()
+						toggle = nil
+						--
+						utility:RemoveConnection({Connection = connection})
+						connection = nil
+						--
+						section:Update()
+					end
+					--
+					function toggle:Get()
+						return {
+							state = toggle.state,
+							key = toggle.keybind and (toggle.keybind:Get() and toggle.keybind:Get().Name or nil) or nil
+						}
+					end
+					--
+					function toggle:Set(value)
+						if type(value) == "table" then
+							if value.state ~= nil then
+								toggle.state = value.state
+								toggleInlineGradient.BackgroundColor3 = toggle.state and Color3.fromRGB(170, 85, 235) or Color3.fromRGB(63, 63, 63)
+							end
+							if value.key and toggle.keybind then
+								local enumKey = Enum.KeyCode[value.key]
+								toggle.keybind:Set(enumKey)
+							end
+						elseif typeof(value) == "boolean" then
+							toggle.state = value
+							toggleInlineGradient.BackgroundColor3 = toggle.state and Color3.fromRGB(170, 85, 235) or Color3.fromRGB(63, 63, 63)
+						end
+						pcall(toggle.callback, toggle.state)
+					end
+					-- // Returning + Other
+					table.insert(section.Widgets, toggle)
+					section:Update()
+					--
+					return toggle
+				end
+				--
+				function section:Button(buttonInfo)
+					-- // Variables
+					local info = buttonInfo or {}
+					local button = {
+						callback = (info.Callback or info.callback or function() end)
+					}
+					-- // Utilisation
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(1, 0, 0, 20)
+					}})
+					--
+					local buttonButton = utility:Create({Type = "TextButton", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(1, 0, 1, 0),
+						Text = ""
+					}})
+					--
+					local buttonFrame = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+						BorderColor3 = Color3.fromRGB(1, 1, 1),
+						BorderMode = "Inset",
+						BorderSizePixel = 1,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 16, 0, 0),
+						Size = UDim2.new(1, -32, 1, 0)
+					}})
+					--
+					local buttonInline = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+						BorderSizePixel = 0,
+						Parent = buttonFrame,
+						Position = UDim2.new(0, 1, 0, 1),
+						Size = UDim2.new(1, -2, 1, -2)
+					}})
+					--
+					local buttonTitle = utility:Create({Type = "TextLabel", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Size = UDim2.new(1, -32, 1, 0),
+						Position = UDim2.new(0, 16, 0, 0),
+						Font = "Code",
+						RichText = true,
+						Text = info.Text or info.text or "new button",
+						TextColor3 = Color3.fromRGB(180, 180, 180),
+						TextStrokeTransparency = 0.5,
+						TextSize = 13,
+						TextXAlignment = "Center"
+					}})
+					--
+					-- // Functions / Connections
+					local connection = utility:Connection({Type = buttonButton.MouseButton1Down, Callback = function()
+						button.callback()
+					end})
+					-- // Nested Functions
+					function button:Remove()
+						contentHolder:Remove()
+						button = nil
+						--
+						utility:RemoveConnection({Connection = connection})
+						connection = nil
+						--
+						section:Update()
+					end
+					-- // Returning + Other
+					section:Update()
+					--
+					return button
+				end
+				--
+				function section:Slider(sliderInfo)
+					-- // Variables
+					local info = sliderInfo or {}
+					local slider = {
+						Name = info.Name or info.name or "Slider",
+						Text = info.Text or info.text or nil,
+						state = (info.Default or info.default or info.Def or info.def or 0),
+						min = (info.Minimum or info.minimum or info.Min or info.min or 0),
+						max = (info.Maximum or info.maximum or info.Max or info.max or 10),
+						decimals = (1 / (info.Decimals or info.decimals or info.Tick or info.tick or 0.25)),
+						suffix = (info.Suffix or info.suffix or info.Ending or info.ending or ""),
+						callback = (info.Callback or info.callback or function() end),
+						holding = false
+					}
+					-- // Utilisation
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(1, 0, 0, (info.Text or info.text) and 24 or 10)
+					}})
+					--
+					local sliderButton = utility:Create({Type = "TextButton", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(1, 0, 1, 0),
+						Text = ""
+					}})
+					--
+					if slider.Text then
+						local sliderTitle = utility:Create({Type = "TextLabel", Properties = {
+							AnchorPoint = Vector2.new(0, 0),
+							BackgroundTransparency = 1,
+							BorderSizePixel = 0,
+							Parent = contentHolder,
+							Size = UDim2.new(1, -16, 0, 14),
+							Position = UDim2.new(0, 16, 0, 0),
+							Font = "Code",
+							RichText = true,
+							Text = (info.Text or info.text),
+							TextColor3 = Color3.fromRGB(180, 180, 180),
+							TextStrokeTransparency = 0.5,
+							TextSize = 13,
+							TextXAlignment = "Left"
+						}})
+					end
+					--
+					local sliderFrame = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(1, 1, 1),
+						BorderSizePixel = 0,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 16, 0, (info.Text or info.text) and 14 or 0),
+						Size = UDim2.new(1, -32, 0, 10)
+					}})
+					--
+					local sliderInlineGradient = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(63, 63, 63),
+						BorderSizePixel = 0,
+						Parent = sliderFrame,
+						Position = UDim2.new(0, 1, 0, 1),
+						Size = UDim2.new(1, -2, 1, -2)
+					}})
+					--
+					local sliderGradient = utility:Create({Type = "UIGradient", Properties = {
+						Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 125, 125))}),
+						Rotation = 90,
+						Parent = sliderInlineGradient
+					}})
+					--
+					local sliderSlideHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sliderFrame,
+						Position = UDim2.new(0, 1, 0, 1),
+						Size = UDim2.new(1, -2, 1, -2)
+					}})
+					--
+					local sliderSlide = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(170, 85, 235),
+						BorderSizePixel = 0,
+						Parent = sliderSlideHolder,
+						Position = UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(0.5, 0, 1, 0)
+					}})
+					--
+					local sliderGradient = utility:Create({Type = "UIGradient", Properties = {
+						Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(125, 125, 125))}),
+						Rotation = 90,
+						Parent = sliderSlide
+					}})
+					--
+					local sliderValue = utility:Create({Type = "TextLabel", Properties = {
+						AnchorPoint = Vector2.new(0.5, 0.25),
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sliderSlide,
+						Size = UDim2.new(0, 10, 0, 14),
+						Position = UDim2.new(1, 0, 0.5, 0),
+						Font = "Code",
+						RichText = true,
+						Text = tostring(slider.state) .. tostring(slider.suffix),
+						TextColor3 = Color3.fromRGB(180, 180, 180),
+						TextStrokeTransparency = 0.5,
+						TextSize = 13,
+						TextXAlignment = "Left"
+					}})
+					--
+					table.insert(section.Widgets, slider)
+					-- // Functions / Connections
+					local connection = utility:Connection({Type = sliderButton.MouseButton1Down, Callback = function()
+						slider.holding = true
+						slider:Refresh()
+					end})
+					--
+					local connection2 = utility:Connection({Type = uis.InputEnded, Callback = function()
+						slider.holding = false
+					end})
+					--
+					local connection3 = utility:Connection({Type = uis.InputChanged, Callback = function()
+						if slider.holding then
+							slider:Refresh()
+						end
+					end})
+					-- // Nested Functions
+					function slider:Remove()
+						contentHolder:Remove()
+						slider = nil
+						--
+						utility:RemoveConnection({Connection = connection})
+						connection = nil
+						utility:RemoveConnection({Connection = connection2})
+						connection2 = nil
+						utility:RemoveConnection({Connection = connection3})
+						connection3 = nil
+						--
+						section:Update()
+					end
+					--
+					function slider:Get()
+						return slider.state
+					end
+					--
+					function slider:Set(value)
+						slider.state = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
+						sliderSlide.Size = UDim2.new(1 - ((slider.max - slider.state) / (slider.max - slider.min)), 0, 1, 0)
+						sliderValue.Text = tostring(slider.state) .. tostring(slider.suffix)
+						pcall(slider.callback, slider.state)
+					end
+					--
+					function slider:Refresh()
+						if slider.holding then
+							if ColorPickerActive then return end
+							local mouseLocation = uis:GetMouseLocation()
+							slider:Set(math.clamp(math.floor((slider.min + (slider.max - slider.min) * (math.clamp(mouseLocation.X - sliderSlide.AbsolutePosition.X, 0, sliderSlideHolder.AbsoluteSize.X) / sliderSlideHolder.AbsoluteSize.X)) * slider.decimals) / slider.decimals, slider.min, slider.max))
+						end
+					end
+					-- // Returning + Other
+					section:Update()
+					slider:Set(slider.state)
+					--
+					return slider
+				end
+				--
+				function section:Textbox(textboxInfo)
+					-- // Variables
+					local info = textboxInfo or {}
+					local textbox = {
+						Name = info.Name or info.name or "Textbox",
+						Text = info.Text or info.text or nil,
+						callback = (info.Callback or info.callback or function() end),
+						default = (info.Default or info.default or ""),
+					}
+					--
+					local HAS_TITLE = textbox.Text ~= nil
+					local TITLE_HEIGHT = 14
+					local TITLE_SPACING = 4
+					local BASE_HEIGHT = 20
+					local totalHeight = BASE_HEIGHT
+					local totalHeight = BASE_HEIGHT
+					if HAS_TITLE then
+						totalHeight = totalHeight + TITLE_HEIGHT + TITLE_SPACING
+					end
+					-- // Utilisation
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(1, 0, 0, totalHeight)
+					}})
+					--
+					if HAS_TITLE then
+						utility:Create({
+							Type = "TextLabel",
+							Properties = {
+								BackgroundTransparency = 1,
+								Parent = contentHolder,
+								Position = UDim2.new(0, 16, 0, 0),
+								Size = UDim2.new(1, -32, 0, TITLE_HEIGHT),
+								Text = textbox.Text,
+								Font = Enum.Font.Code,
+								TextSize = 12,
+								TextXAlignment = Enum.TextXAlignment.Left,
+								TextColor3 = Color3.fromRGB(200,200,200),
+								ZIndex = 49
+							}
+						})
+					end
+					--
+					local textboxFrame = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+						BorderColor3 = Color3.fromRGB(1, 1, 1),
+						BorderMode = "Inset",
+						BorderSizePixel = 1,
+						Parent = contentHolder,
+						Position = UDim2.new(0, 16, 0, HAS_TITLE and (TITLE_HEIGHT + TITLE_SPACING) or 0),
+						Size = UDim2.new(1, -32, 0, BASE_HEIGHT)
+					}})
+					-- inline
+					local textboxInline = utility:Create({Type = "Frame", Properties = {
+						BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+						BorderSizePixel = 0,
+						Parent = textboxFrame,
+						Position = UDim2.new(0, 1, 0, 1),
+						Size = UDim2.new(1, -2, 1, -2)
+					}})
+					-- actual textbox
+					local textboxBox = utility:Create({Type = "TextBox", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = textboxInline,
+						Size = UDim2.new(1, -6, 1, 0),
+						Position = UDim2.new(0, 3, 0, 0),
+						Text = textbox.default,
+						PlaceholderText = info.Placeholder or info.placeholder or "",
+						Font = "Code",
+						TextColor3 = Color3.fromRGB(180, 180, 180),
+						TextSize = 13,
+						ClearTextOnFocus = false
+					}})
+					-- // Functions / Connections
+					local connection = textboxBox.FocusLost:Connect(function()
+						textbox.callback(textboxBox.Text)
+					end)
+					--
+					table.insert(section.Widgets, textbox)
+					-- // Methods
+					function textbox:Get()
+						return textboxBox.Text
+					end
+					--
+					function textbox:Set(text)
+						textboxBox.Text = text
+					end
+					--
+					function textbox:Remove()
+						contentHolder:Destroy()
+						utility:RemoveConnection({Connection = connection})
+						textbox = nil
+						section:Update()
+					end
+					--
+					section:Update()
+					return textbox
+				end
+				--
+				function section:Dropdown(dropdownInfo)
+					local info = dropdownInfo or {}
+					local dropdown = {
+						Name = info.Name or info.name or "NewDropdown",
+						text = type(info.Text) == "string" and info.Text or nil,
+						options = info.Options or {},
+						multi = info.Multi or false,
+						selected = (function()
+							if info.Multi then
+								return type(info.Default) == "table" and info.Default or {}
+							else
+								return type(info.Default) == "string" and info.Default
+									or (info.Options and info.Options[1])
+									or ""
+							end
+						end)(),
+						callback = info.Callback or function(_) end,
+						open = false
+					}
+					local HAS_TITLE = dropdown.text ~= nil
+					--
+					local BASE_HEIGHT = 20
+					local TITLE_HEIGHT = 14
+					local MAX_VISIBLE_OPTIONS = 6
+					local OPTION_HEIGHT = 20
+					local TITLE_SPACING = 4
+					--
+					local contentHolder = utility:Create({Type = "Frame", Properties = {
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0,
+						Parent = sectionContentHolder,
+						Size = UDim2.new(
+							1, 0, 0,
+							BASE_HEIGHT + (HAS_TITLE and (TITLE_HEIGHT + TITLE_SPACING) or 0)
+						)
+					}})
+					--
+					if HAS_TITLE then
+						utility:Create({
+							Type = "TextLabel",
+							Properties = {
+								BackgroundTransparency = 1,
+								Parent = contentHolder,
+								Position = UDim2.new(0, 16, 0, 0),
+								Size = UDim2.new(1, -32, 0, TITLE_HEIGHT),
+								Text = dropdown.text,
+								Font = Enum.Font.Code,
+								TextSize = 12,
+								TextXAlignment = Enum.TextXAlignment.Left,
+								TextColor3 = Color3.fromRGB(200,200,200),
+								ZIndex = 49
+							}
+						})
+					end
+					--
+					local dropdownButtonFrame = utility:Create({
+						Type = "Frame",
+						Properties = {
+							BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+							BorderColor3 = Color3.fromRGB(1, 1, 1),
+							BorderSizePixel = 1,
+							Parent = contentHolder,
+							Position = UDim2.new(
+								0, 16,
+								0, HAS_TITLE and (TITLE_HEIGHT + TITLE_SPACING) or 0
+							),
+							Size = UDim2.new(1, -32, 0, BASE_HEIGHT),
+							ZIndex = 50
+						}
+					})
+					--
+					local dropdownShade = utility:Create({
+						Type = "Frame",
+						Properties = {
+							BackgroundColor3 = Color3.fromRGB(25,25,25),
+							BorderSizePixel = 0,
+							Parent = dropdownButtonFrame,
+							Position = UDim2.new(0,1,0,1),
+							Size = UDim2.new(1,-2,1,-2),
+							ZIndex = 51
+						}
+					})
+					--
+					local dropdownButton = utility:Create({Type = "TextButton", Properties = {
+						BackgroundTransparency = 1,
+						Parent = dropdownShade,
+						Position = UDim2.new(0, 8, 0, 0),
+						Size = UDim2.new(1, -16, 1, 0),
+						Text = "",
+						Font = Enum.Font.Code,
+						TextColor3 = Color3.fromRGB(180,180,180),
+						TextSize = 13,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextTruncate = Enum.TextTruncate.AtEnd,
+						ClipsDescendants = true,   
+						AutoButtonColor = false,
+						ZIndex = 52
+					}})
+					--
+					local optionsHolder = utility:Create({
+						Type = "ScrollingFrame",
+						Properties = {
+							BackgroundColor3 = Color3.fromRGB(25,25,25),
+							BorderSizePixel = 0,
+							Parent = dropdownButtonFrame,
+							Position = UDim2.new(0, 0, 1, 0),
+							Size = UDim2.new(1, 0, 0, 0),
+							CanvasSize = UDim2.new(0,0,0,0),
+							ScrollBarThickness = 2,
+							ScrollBarImageColor3 = Color3.fromRGB(170, 85, 235),
+							ScrollingEnabled = false,
+							ClipsDescendants = true,
+							ZIndex = 60
+						}
+					})
+					--
+					local function isSelected(option)
+						if not dropdown.multi then
+							return dropdown.selected == option
+						end
+						return table.find(dropdown.selected, option) ~= nil
+					end
+					--
+					local function toggleOption(option)
+						if not dropdown.multi then
+							dropdown.selected = option
+							return
+						end
+
+						local idx = table.find(dropdown.selected, option)
+						if idx then
+							table.remove(dropdown.selected, idx)
+						else
+							table.insert(dropdown.selected, option)
+						end
+					end
+					--
+					local function updateButtonText()
+						if dropdown.multi then
+							if type(dropdown.selected) ~= "table" then
+								dropdown.selected = {}
+							end
+							--
+							dropdownButton.Text =
+								(#dropdown.selected > 0 and table.concat(dropdown.selected, ", "))
+								or "none"
+						else
+							dropdownButton.Text = tostring(dropdown.selected or "")
+						end
+					end
+					--
+					updateButtonText()
+					--
+					local function updateOptions()
+						optionsHolder:ClearAllChildren()
+						local totalHeight = 0
+						--
+						for i, option in ipairs(dropdown.options) do
+							local opt = utility:Create({
+								Type = "TextButton",
+								Properties = {
+									BackgroundColor3 = Color3.fromRGB(25,25,25),
+									BorderSizePixel = 0,
+									Parent = optionsHolder,
+									Size = UDim2.new(1, 0, 0, OPTION_HEIGHT),
+									Position = UDim2.new(0, 0, 0, totalHeight),
+									Text = option,
+									Font = Enum.Font.Code,
+									TextColor3 = isSelected(option)
+												and Color3.fromRGB(170, 85, 235)
+												or Color3.fromRGB(180,180,180),
+									TextSize = 13,
+									AutoButtonColor = false,
+									ZIndex = 60
+								}
+							})
+							--
+							totalHeight += OPTION_HEIGHT
+							--
+							opt.MouseEnter:Connect(function()
+								if not isSelected(option) then
+									opt.BackgroundColor3 = Color3.fromRGB(55,55,55)
+								end
+							end)
+							--
+							opt.MouseLeave:Connect(function()
+								if not isSelected(option) then
+									opt.BackgroundColor3 = Color3.fromRGB(25,25,25)
+								end
+							end)
+							--
+							opt.MouseButton1Click:Connect(function()
+								toggleOption(option)
+								updateButtonText()
+								dropdown.callback(dropdown.selected)
+								--
+								updateOptions()
+								--
+								if not dropdown.multi then
+									dropdown.open = false
+									optionsHolder:TweenSize(
+										UDim2.new(1,0,0,0),
+										"Out","Quad",0.2,true
+									)
+								end
+							end)
+						end
+						--
+						optionsHolder.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+						--
+						if #dropdown.options > MAX_VISIBLE_OPTIONS then
+							optionsHolder.ScrollingEnabled = true
+							optionsHolder.ScrollBarImageTransparency = 0
+							return MAX_VISIBLE_OPTIONS * OPTION_HEIGHT
+						else
+							optionsHolder.ScrollingEnabled = false
+							optionsHolder.ScrollBarImageTransparency = 1
+							return totalHeight
+						end
+					end
+					--
+					dropdownButton.MouseButton1Click:Connect(function()
+						dropdown.open = not dropdown.open
+						--
+						if dropdown.open then
+							local h = updateOptions()
+							optionsHolder:TweenSize(UDim2.new(1,0,0,h),"Out","Quad",0.2,true)
+						else
+							optionsHolder:TweenSize(UDim2.new(1,0,0,0),"Out","Quad",0.2,true)
+						end
+					end)
+					--
+					function dropdown:Get()
+						return {
+							selected = dropdown.selected
+						}
+					end
+					--
+					function dropdown:Set(value)
+						if dropdown.multi then
+							if type(value) == "table" then
+								dropdown.selected = value
+							end
+						else
+							if type(value) == "string" and table.find(dropdown.options, value) then
+								dropdown.selected = value
+							end
+						end
+
+						updateButtonText()
+						pcall(dropdown.callback, dropdown.selected)
+					end
+					--
+					function dropdown:Refresh(newOptions)
+						dropdown.options = newOptions or {}
+
+						if dropdown.multi then
+							if type(dropdown.selected) ~= "table" then
+								dropdown.selected = {}
+							end
+						else
+							if not table.find(dropdown.options, dropdown.selected) then
+								dropdown.selected = dropdown.options[1] or ""
+							end
+						end
+
+						updateOptions()
+						updateButtonText()
+					end
+					--
+					function dropdown:Remove()
+						contentHolder:Destroy()
+						dropdown = nil
+						section:Update()
+					end
+					--
+					section:Update()
+					return dropdown
+				end
+				-- // Returning + Other
+				return section
+			end
+			-- // Returning + Other
+			page.Tab = tab
+			page.PageHolder = pageHolder
+			page.Left = leftHolder
+			page.Right = rightHolder
+			--
+			window.Pages[#window.Pages + 1] = page
+			--
+			return page
+		end
+		-- // Returning
+		return window
+	end
+end
+return library, utility, obelus
