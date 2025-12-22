@@ -6,7 +6,11 @@ local obelus = {
 }
 -- // Variables
 local uis = game:GetService("UserInputService")
-local cre = game:GetService("CoreGui")
+local cre = plr:WaitForChild("PlayerGui")
+local rs = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local ColorPickerActive = false
 -- // Indexing
 library.__index = library
 -- // Functions
