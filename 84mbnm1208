@@ -1812,6 +1812,8 @@ do
 						end
 					end)
 					--
+					table.insert(section.Widgets, dropdown)
+					--
 					function dropdown:Get()
 						return {
 							selected = dropdown.selected
