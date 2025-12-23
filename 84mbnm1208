@@ -1815,9 +1815,7 @@ do
 					table.insert(section.Widgets, dropdown)
 					--
 					function dropdown:Get()
-						return {
-							selected = dropdown.selected
-						}
+					    return dropdown.selected
 					end
 					--
 					function dropdown:Set(value)
